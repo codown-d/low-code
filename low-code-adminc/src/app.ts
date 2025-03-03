@@ -14,3 +14,18 @@ export const layout = () => {
     },
   };
 };
+
+// src/app.ts
+export const qiankun = {
+  apps: [
+    {
+      name: 'low-code-engine',
+      entry:
+        process.env.NODE_ENV === 'development'
+          ? '//localhost:8001'
+          : '/child/low-code-engine/',
+      activeRule: '/low-code-engine',
+      props: {},
+    },
+  ],
+};

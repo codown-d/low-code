@@ -1,5 +1,6 @@
 const { Controller } = require("egg");
 
+    const COS = require("cos-nodejs-sdk-v5");
 class UploadController extends Controller {
   async upload() {
     const { ctx } = this;
@@ -8,12 +9,6 @@ class UploadController extends Controller {
     if (!file) {
       ctx.throw(400, "请上传文件");
     }
-    const COS = require("cos-nodejs-sdk-v5");
-    const cos = new COS({
-      SecretId: process.env.SecretId, // 推荐使用环境变量获取；用户的 SecretId，建议使用子账号密钥，授权遵循最小权限指引，降低使用风险。子账号密钥获取可参考https://cloud.tencent.com/document/product/598/37140
-      SecretKey: process.env.SecretKey, // 推荐使用环境变量获取；用户的 SecretKey，建议使用子账号密钥，授权遵循最小权限指引，降低使用风险。子账号密钥获取可参考https://cloud.tencent.com/document/product/598/37140
-    });
-    console.log(file);
     try {
       const result = await ctx.service.tencentCos.uploadFile(file);
       ctx.body = {
@@ -23,6 +18,40 @@ class UploadController extends Controller {
       };
     } catch (error) {
       ctx.throw(500, "上传失败");
+    }
+  }
+  async listFiles() {
+    const { ctx } = this;
+    try {
+      // 调用 TencentCosService 获取文件列表
+      const fileList = await ctx.service.tencentCos.listFiles();
+      ctx.body = {
+        message: '文件列表获取成功',
+        data: fileList,
+      };
+    } catch (error) {
+      ctx.body = {
+        message: '文件列表获取失败',
+        error: error.message,
+      };
+    }
+  }
+  async getJsonFile() {
+    const { ctx } = this;
+    const { fileName } = ctx.query;
+    try {
+      const result = await ctx.service.tencentCos.getJsonFile(fileName);
+      const fileContent = result.Body.toString('utf-8'); // 获取文件内容并转为字符串
+      const jsonData = JSON.parse(fileContent);
+      ctx.body = {
+        message: '文件列表获取成功',
+        data: jsonData,
+      };
+    } catch (error) {
+      ctx.body = {
+        message: '文件列表获取失败',
+        error: error.message,
+      };
     }
   }
 }
