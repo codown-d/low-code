@@ -1,6 +1,6 @@
 const proxy = {
     '/api': {
-      target: 'http://127.0.0.1:7001/',
+      target: 'http://150.158.93.25:7001/',
       changeOrigin: true,
     //   pathRewrite: { '^/api': '' },
   },

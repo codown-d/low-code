@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "cos-nodejs-sdk-v5": "^2.14.6",
+    "dotenv": "^16.4.7",
     "egg": "^3.17.5",
     "egg-cors": "^3.0.1",
     "egg-scripts": "2"

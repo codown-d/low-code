@@ -26,6 +26,7 @@ class UploadController extends Controller {
       // 调用 TencentCosService 获取文件列表
       const fileList = await ctx.service.tencentCos.listFiles();
       ctx.body = {
+        code:200,
         message: '文件列表获取成功',
         data: fileList,
       };
@@ -39,12 +40,12 @@ class UploadController extends Controller {
   async getJsonFile() {
     const { ctx } = this;
     const { fileName } = ctx.query;
-    console.log(fileName)
     try {
       const result = await ctx.service.tencentCos.getJsonFile(fileName);
       const fileContent = result.Body.toString('utf-8'); // 获取文件内容并转为字符串
       const jsonData = JSON.parse(fileContent);
       ctx.body = {
+        code:200,
         message: '文件获取成功',
         data: jsonData,
       };

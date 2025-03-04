@@ -1,8 +1,10 @@
 /* eslint valid-jsdoc: "off" */
 
+require("dotenv").config();
 /**
  * @param {Egg.EggAppInfo} appInfo app info
  */
+// add your user config here
 module.exports = (appInfo) => {
   /**
    * built-in config
@@ -30,13 +32,13 @@ module.exports = (appInfo) => {
   // add your middleware config here
   config.middleware = [];
 
-  // add your user config here
+  let { SecretId, SecretKey } = process.env;
   const userConfig = {
     // myAppName: 'egg',
 
     tencentCOS: {
-      SecretId: "AKIDhPwGPL7mPxMb1Ji182jDWddS4TggT4Tf",
-      SecretKey: "3tVxDF9qKelfMsEPPCmhUCh06zhDnGXf",
+      SecretId,
+      SecretKey,
       Bucket: "lowcode-1302901088",
       Region: "ap-chengdu", // 例如 ap-shanghai
     },

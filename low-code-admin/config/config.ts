@@ -19,9 +19,7 @@ export default defineConfig({
   model: {},
   valtio: {},
   initialState: {},
-  request: {
-    // dataField: 'data'
-  },
+  request: {},
   proxy,
   routes,
   layout: {

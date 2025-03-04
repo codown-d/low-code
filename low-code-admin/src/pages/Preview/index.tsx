@@ -1,20 +1,15 @@
-import { Loading } from '@alifd/next';
+import { jsonFile } from '@/services';
 import ReactRenderer from '@alilc/lowcode-react-renderer';
-import {
-  assetBundle,
-  AssetLevel,
-  AssetLoader,
-  buildComponents,
-} from '@alilc/lowcode-utils';
-import { useState } from 'react';
+import { AssetLoader, buildComponents } from '@alilc/lowcode-utils';
+import { useLocation } from '@umijs/max';
+import { isArray, mergeWith } from 'lodash';
+import { useCallback, useEffect, useState } from 'react';
 import appHelper from './appHelper';
 import {
   getPackagesFromLocalStorage,
   getPreviewLocale,
-  getProjectSchemaFromLocalStorage,
   setPreviewLocale,
 } from './services/mockService';
-import { isArray, mergeWith } from 'lodash';
 
 const getScenarioName = function () {
   if (location.search) {
@@ -28,26 +23,28 @@ const getScenarioName = function () {
 
 const SamplePreview = () => {
   const [data, setData] = useState({});
-
-  async function init() {
-    const scenarioName = getScenarioName();
-    console.log(scenarioName)
-    const packages = getPackagesFromLocalStorage(scenarioName);
-    const projectSchema = getProjectSchemaFromLocalStorage(scenarioName);
+  const scenarioName = getScenarioName();
+  const packages = getPackagesFromLocalStorage(scenarioName);
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  let init = useCallback(async () => {
+    const response = await jsonFile({
+      fileName: queryParams.get('fileName') as string,
+    });
     const {
       componentsMap: componentsMapArray,
       componentsTree,
       i18n,
       dataSource: projectDataSource,
-    } = projectSchema;
+    } = response.data;
     const componentsMap: any = {};
     componentsMapArray.forEach((component: any) => {
       componentsMap[component.componentName] = component;
     });
     const pageSchema = componentsTree[0];
 
-    const libraryMap:any = {};
-    const libraryAsset:any[] = [];
+    const libraryMap: any = {};
+    const libraryAsset: any[] = [];
     packages.forEach(({ package: _package, library, urls, renderUrls }) => {
       libraryMap[_package] = library;
       if (renderUrls) {
@@ -57,15 +54,8 @@ const SamplePreview = () => {
       }
     });
 
-    const vendors = [assetBundle(libraryAsset, AssetLevel.Library)];
-
-    // TODO asset may cause pollution
     const assetLoader = new AssetLoader();
     await assetLoader.load(libraryAsset);
-
-    // injectComponents 的使用一般在开发环境做调试注入使用（详细见文档），一般纯净的预览环境是不依赖此插件（即预览渲染态理论上是不需要依赖任何引擎及其相关的插件等资源，PS: 一些 utils 和 types 忽略）
-    // The use of injectComponents is generally used for debugging and injection in the development environment (see the documentation for details). The generally destroyed preview environment does not rely on this plug-in.
-    // const components = await injectComponents(buildComponents(libraryMap, componentsMap));
     const components = buildComponents(libraryMap, componentsMap);
     setData({
       schema: pageSchema,
@@ -73,16 +63,12 @@ const SamplePreview = () => {
       i18n,
       projectDataSource,
     });
-  }
-
-  const { schema, components, i18n = {}, projectDataSource = {} } = data as any;
-
-  if (!schema || !components) {
+  }, [location]);
+  useEffect(() => {
     init();
-    return <Loading fullScreen />;
-  }
-  const currentLocale = getPreviewLocale(getScenarioName());
+  }, [init]);
 
+  const currentLocale = getPreviewLocale(getScenarioName());
   if (!(window as any).setPreviewLocale) {
     // for demo use only, can use this in console to switch language for i18n test
     // 在控制台 window.setPreviewLocale('en-US') 或 window.setPreviewLocale('zh-CN') 查看切换效果
@@ -95,8 +81,11 @@ const SamplePreview = () => {
       return objValue.concat(srcValue || []);
     }
   }
-// console.log(schema,projectDataSource)
-// console.log(customizer)
+  const { schema, components, i18n = {}, projectDataSource = {} } = data as any;
+
+  if (!schema || !components) {
+    return <></>;
+  }
   return (
     <div
       className="lowcode-plugin-sample-preview"
